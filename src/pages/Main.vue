@@ -1,5 +1,16 @@
 <template>
   <div class="main">
+    <div class="btn__container">
+      <button class="btn" @click="isVisible = !isVisible"> Добавить </button>
+    </div>
+
+    <transition name="fade" mode="out-in">
+      <add-table-item
+        v-if="isVisible"
+        @createTableItem="sendToDataSet($event)"
+        />
+    </transition>
+
      <div class="table__container">
       <table-template
         :dataTable="getDataSet"
@@ -22,6 +33,7 @@
             <div class="item">{{ item.phone }}</div>
           </div>
         </template>
+
       </table-template>
     </div>
   </div>
@@ -30,12 +42,14 @@
 <script>
 
 import TableTemplate from "../components/TableTemplate"
+import AddTableItem from "../components/AddTableItem"
 import { mapGetters } from "vuex"
 
 export default {
   name: "App",
   components: {
-    TableTemplate
+    TableTemplate,
+    AddTableItem
   },
 
   data() {
@@ -46,6 +60,7 @@ export default {
       sortKeyLastName: true,
       sortKeyEmail: true,
       sortKeyPhone: false,
+      isVisible: false,
     }
   },
 
@@ -68,6 +83,10 @@ export default {
       if(item === "phone") this.sortByPhone()
     },
 
+    sendToDataSet(data) {
+      this.$store.commit('addNewTableItem', data)
+    },
+
     sortByPhone() {
       this.sortKeyPhone = !this.sortKeyPhone
         this.getDataSet.sort((a,b) => {
@@ -82,8 +101,8 @@ export default {
     },
 
     sortByNum(selector, keySelector) {
+      this.[keySelector] = !this.[keySelector]
       if(this.[keySelector]) {
-        this.[keySelector] = !this.[keySelector]
         return this.getDataSet.sort((a, b) => a.[selector] - b.[selector])
       } else {
         return this.getDataSet.reverse()
@@ -119,6 +138,8 @@ export default {
 
 <style lang="scss" scoped>
 
+@import "../styles/common";
+
 .table {
   &__container {
     width: 100%;
@@ -144,5 +165,15 @@ export default {
 
 .main {
   width: 100%;
+}
+
+.btn {
+  @extend %btn;
+
+  &__container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 </style>
