@@ -13,6 +13,11 @@ export default new Vuex.Store({
   mutations: {
     settingData(state, data) {
       state.dataSet = data
+    },
+
+    addNewTableItem(state, data) {
+      state.dataSet.push(data)
+      console.log('done');
     }
   },
   actions: {
