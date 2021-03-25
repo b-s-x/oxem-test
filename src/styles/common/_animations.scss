@@ -1,0 +1,27 @@
+.fade-enter-active {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.fade-leave-active {
+  animation: fade 0.5s ease-in-out;
+}
+
+.fade-enter,
+.fade-leave {
+  opacity: 0;
+  transition: 0.5s;
+}
+
+@keyframes fade {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
