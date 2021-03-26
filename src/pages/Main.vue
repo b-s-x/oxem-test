@@ -1,67 +1,97 @@
 <template>
   <div class="main">
     <div class="btn__container">
-      <button class="btn" @click="isVisible = !isVisible"> Добавить </button>
+      <button class="btn" @click="isVisible = !isVisible">Добавить</button>
     </div>
 
     <transition name="fade" mode="out-in">
       <add-table-item
         v-if="isVisible"
         @createTableItem="sendToDataSet($event)"
-        />
+      />
     </transition>
 
-     <div class="table__container">
-      <table-template
-        :dataTable="getDataSet"
-        :dataTitle="dataTitle"
-        >
+    <div class="table__container">
+      <paginate :list="getDataSet" :per="5" name="pages">
 
-        <template #tableTitle="{ title }" >
-          <div class="table__item" @click="sortBy(title)">
-            <div class="item" >{{ title }}</div>
-          </div>
-        </template>
+        <table-template :dataTable="paginated('pages')" :dataTitle="dataTitle">
+          <template #tableTitle="{ title, index }">
+            <div class="table__item" @click="sortBy(title, index)">
+              <div class="item">
+                <div>{{ title }}</div>
+                <div class="dropdown__box">
+                  <svg class="dropdown__img" :class="checkASortKey">
+                    <use
+                      xlink:href="../../public/down-arrow.svg#dropdown"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <template #tableItem="{ item }">
+            <div class="table__item" @click="selectingUser(item.id)">
+              <div class="item">{{ item.id }}</div>
+              <div class="item">{{ item.firstName }}</div>
+              <div class="item">{{ item.lastName }}</div>
+              <div class="item">{{ item.email }}</div>
+              <div class="item">{{ item.phone }}</div>
+            </div>
+          </template>
+        </table-template>
+      </paginate>
 
 
-        <template #tableItem="{ item }">
-          <div class="table__item">
-            <div class="item">{{ item.id }}</div>
-            <div class="item">{{ item.firstName }}</div>
-            <div class="item">{{ item.lastName }}</div>
-            <div class="item">{{ item.email }}</div>
-            <div class="item">{{ item.phone }}</div>
-          </div>
-        </template>
+      <paginate-links
+        for="pages"
+        :show-step-links="true"
+        :step-links="{
+          next: 'Следующая страница',
+          prev: 'Предыдущая страница',
+        }"
+      />
 
-      </table-template>
+      <form-representation
+        v-if="pickAUser"
+        :pickAUser="pickAUser"
+        class="form__represent"
+      />
     </div>
   </div>
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 
-import TableTemplate from "../components/TableTemplate"
-import AddTableItem from "../components/AddTableItem"
-import { mapGetters } from "vuex"
+import TableTemplate from "../components/TableTemplate";
+import AddTableItem from "../components/AddTableItem";
+import FormRepresentation from "../components/FormRepresentation";
 
 export default {
   name: "App",
   components: {
     TableTemplate,
-    AddTableItem
+    AddTableItem,
+    FormRepresentation,
   },
 
   data() {
     return {
       dataTitle: ["id", "firstName", "lastName", "email", "phone"],
-      sortKeyId: true,
-      sortKeyFirstName: true,
-      sortKeyLastName: true,
-      sortKeyEmail: true,
-      sortKeyPhone: false,
+
+      keyMap: {
+        sortKeyId: true,
+        sortKeyFirstName: true,
+        sortKeyLastName: true,
+        sortKeyEmail: true,
+        sortKeyPhone: true,
+      },
+
       isVisible: false,
-    }
+      pickAUser: null,
+
+      paginate: ["pages"],
+    };
   },
 
   computed: {
@@ -70,74 +100,88 @@ export default {
     }),
 
     getDataTable() {
-      return this.getDataSet
+      return this.getDataSet;
     },
+
+    checkASortKey() {
+      return { dropdown__img__active: false }
+    }
   },
 
   methods: {
-    sortBy(item) {
-      if(item === "id") this.sortByNum("id", "sortKeyId")
-      if(item === "firstName") this.sortByName("firstName", "sortKeyFirstName")
-      if(item === "lastName") this.sortByName("lastName", "sortKeyLastName")
-      if(item === "email") this.sortByName("email", "sortKeyEmailName")
-      if(item === "phone") this.sortByPhone()
+    sortBy(item, index) {
+      // console.log(item, index);
+      if (item === "id") this.sortByNum("id", "sortKeyId");
+      if (item === "firstName") this.sortByName("firstName", "sortKeyFirstName");
+      if (item === "lastName") this.sortByName("lastName", "sortKeyLastName");
+      if (item === "email") this.sortByName("email", "sortKeyEmailName");
+      if (item === "phone") this.sortByPhone();
+    },
+
+    log(id) {
+      console.log(id);
+    },
+
+    selectingUser(id) {
+      this.getDataSet.filter((elem) => {
+        if (elem.id === id) {
+          this.pickAUser = elem;
+        }
+      });
     },
 
     sendToDataSet(data) {
-      this.$store.commit('addNewTableItem', data)
+      this.$store.commit("addNewTableItem", data);
     },
 
     sortByPhone() {
-      this.sortKeyPhone = !this.sortKeyPhone
-        this.getDataSet.sort((a,b) => {
-          let nameA = a.phone.split("")[1]
-          let nameB = b.phone.split("")[1]
-          if(this.sortKeyPhone) {
-            return nameA - nameB
-          } else {
-            return nameB - nameA
-          }
-        })
+      this.keyMap.sortKeyPhone = !this.keyMap.sortKeyPhone;
+      this.getDataSet.sort((a, b) => {
+        let nameA = a.phone.split("")[1];
+        let nameB = b.phone.split("")[1];
+        if (this.keyMap.sortKeyPhone) {
+          return nameA - nameB;
+        } else {
+          return nameB - nameA;
+        }
+      });
     },
 
     sortByNum(selector, keySelector) {
-      this.[keySelector] = !this.[keySelector]
-      if(this.[keySelector]) {
-        return this.getDataSet.sort((a, b) => a.[selector] - b.[selector])
+      this.keyMap[keySelector] = !this.keyMap[keySelector];
+      if (this.keyMap[keySelector]) {
+       return this.getDataSet.sort((a, b) => a[selector] - b[selector]);
       } else {
-        return this.getDataSet.reverse()
+        return this.getDataSet.reverse();
       }
     },
 
     sortByName(selector, keySelector) {
-      this.[keySelector] = !this.[keySelector]
-
+      this.keyMap[keySelector] = !this.keyMap[keySelector];
       this.getDataSet.sort((a, b) => {
-        let nameA = a[selector].toLowerCase()
-        let nameB = b[selector].toLowerCase()
+        let nameA = a[selector].toLowerCase();
+        let nameB = b[selector].toLowerCase();
 
-        if(this.[keySelector]) {
-          if( nameA < nameB) return 1
-          if( nameA > nameB) return -1
+        if (this.keyMap[keySelector]) {
+          if (nameA < nameB) return 1;
+          if (nameA > nameB) return -1;
         } else {
-          if( nameA < nameB) return -1
-          if( nameA > nameB) return 1
+          if (nameA < nameB) return -1;
+          if (nameA > nameB) return 1;
         }
 
-        return 0
-      })
-    }
+        return 0;
+      });
+    },
   },
 
   async mounted() {
-    await this.$store.dispatch("fetchData", "small")
-  }
-}
-
+    await this.$store.dispatch("fetchData", "small");
+  },
+};
 </script>
 
-<style lang="scss" scoped>
-
+<style lang="scss"    >
 @import "../styles/common";
 
 .table {
@@ -176,4 +220,50 @@ export default {
     align-items: center;
   }
 }
+
+.dropdown {
+  &__box {
+    width: 20px;
+    height: 20px;
+    margin-left: 10px;
+  }
+
+  &__img {
+    fill: black;
+    width: 100%;
+    height: 100%;
+
+    &__active {
+      transform: rotate(180deg)
+    }
+  }
+}
+
+.form__represent {
+  margin-top: 40px;
+}
+
+.paginate-links {
+  display: flex;
+  list-style-type: none;
+  justify-content: space-around;
+  font-size: 24px;
+
+}
+
+.paginate-links.pages {
+  user-select: none;
+  & a {
+    cursor: pointer;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  li.active a {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+}
+
+
 </style>

@@ -7,7 +7,7 @@
         :key="index"
         >
 
-        <slot name="tableTitle" :title="title"> </slot>
+        <slot name="tableTitle" :title="title" :index="index"> </slot>
 
         </div>
     </div>
