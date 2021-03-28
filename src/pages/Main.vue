@@ -132,6 +132,7 @@ export default {
 
     sendToDataSet(data) {
       this.$store.commit("addNewTableItem", data);
+      this.isVisible = false;
     },
 
     sortByPhone() {

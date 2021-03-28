@@ -107,6 +107,18 @@ import { IMaskDirective } from 'vue-imask';
 import { email, numeric, helpers, required, minLength } from "vuelidate/lib/validators";
 const alpha = helpers.regex("alpha", /^[a-zA-Za-яёА-ЯЁ]*$/);
 
+// Если бы FormItem был бы классом, эта функция пропала бы отсюда, и везде вызывался бы
+// какой нибудь FormItem.empty()
+const newEmptyFormItem = () => {
+  return {
+    id: "",
+    name: "",
+    surname: "",
+    email: "",
+    phone: "",
+  };
+};
+
 export default {
   data() {
     return {
@@ -120,13 +132,7 @@ export default {
         lazy: true,
       },
 
-      formItem: {
-        id: "",
-        name: "",
-        surname: "",
-        email: "",
-        phone: "",
-      },
+      formItem: newEmptyFormItem(),
     };
   },
 
@@ -166,29 +172,35 @@ export default {
       };
     },
 
-    createTableItem() {
+    clearForm() {
+      this.formItem = newEmptyFormItem();
+    },
 
+    createTableItem() {
       this.$v.$touch();
       if (this.$v.$invalid) {
         this.submitStatus = "ERROR";
-      } else {
-        const tableItem = {
-          id: this.formItem.id,
-          firstName: this.formItem.name,
-          lastName: this.formItem.surname,
-          email: this.formItem.email,
-          phone: this.formItem.phone,
-        };
-
-        this.submitStatus = "OK";
-
-        for (let input in this.formItem) {
-          this.formItem[input] = "";
-        }
-
-        this.$v.$reset();
-        this.$emit('createTableItem', tableItem)
+        // Это называется early return - если выполнение ветки if'а не
+        // подразумевает продолжение выполнения можно просто сделать return
+        // Уровень вложенности кода при этом падает на 1 (нет ветки else)
+        return;
       }
+
+      this.submitStatus = "OK";
+
+      // for (let input in this.formItem) {
+      //   this.formItem[input] = "";
+      // }
+      this.$v.$reset();
+      this.$emit('createTableItem', {
+        id: this.formItem.id,
+        firstName: this.formItem.name,
+        lastName: this.formItem.surname,
+        email: this.formItem.email,
+        phone: this.formItem.phone,
+      });
+
+      this.clearForm();
     },
   },
 
