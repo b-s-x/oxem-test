@@ -13,7 +13,7 @@
         />
 
         <transition name="fade" mode="out-in">
-          <div v-if="ifFormItemIdDirtyAndNumeric" class="form-error__text">
+          <div v-if="errorVisible.id" class="form-error__text">
             {{ msgIsANumber }}
           </div>
         </transition>
@@ -31,7 +31,7 @@
         />
 
         <transition name="fade" mode="out-in">
-          <div v-if="ifFormItemNameDirtyAndAlpha" class="form-error__text">
+          <div v-if="errorVisible.name" class="form-error__text">
             {{ msgAlpha }}
           </div>
         </transition>
@@ -49,7 +49,7 @@
           />
 
           <transition name="fade" mode="out-in">
-            <div v-if="ifFormItemSurnameDirtyAndAlpha" class="form-error__text">
+            <div v-if="errorVisible.surname" class="form-error__text">
               {{ msgAlpha }}
             </div>
           </transition>
@@ -67,7 +67,7 @@
           />
 
           <transition name="fade" mode="out-in">
-            <div v-if="ifFormItemEmailDirtyAndEmail" class="form-error__text">
+            <div v-if="errorVisible.email" class="form-error__text">
               {{ msgToBeEmail }}
             </div>
           </transition>
@@ -86,7 +86,7 @@
           />
 
         <transition name="fade" mode="out-in">
-          <div v-if="ifFormItemPhoneDirtyAndRequired" class="form-error__text">
+          <div v-if="errorVisible.phone" class="form-error__text">
             {{ msgRequired }}
           </div>
         </transition>
@@ -193,30 +193,19 @@ export default {
   },
 
   computed: {
-    ifFormItemIdDirtyAndNumeric() {
-      return this.$v.formItem.id.$dirty && !this.$v.formItem.id.numeric;
-    },
-    ifFormItemNameDirtyAndAlpha() {
-      return this.$v.formItem.name.$dirty && !this.$v.formItem.name.alpha;
-    },
-    ifFormItemSurnameDirtyAndAlpha() {
-      return this.$v.formItem.surname.$dirty && !this.$v.formItem.surname.alpha;
-    },
-    ifFormItemEmailDirtyAndEmail() {
-      return this.$v.formItem.email.$dirty && !this.$v.formItem.email.email;
-    },
-    ifFormItemPhoneDirtyAndRequired() {
-      return this.$v.formItem.phone.$dirty &&
-            !this.$v.formItem.phone.required &&
-            !this.$v.formItem.phone.minLength
+    errorVisible() {
+      const { id, name, surname, email, phone } = this.$v.formItem;
+
+      return {
+        id: id.$dirty && id.$error,
+        name: name.$dirty && name.$error,
+        surname: surname.$dirty && surname.$error,
+        email: email.$dirty && email.$error,
+        phone: phone.$dirty && phone.$error,
+      }
     },
     disabledRegister() {
-      return this.$v.formItem.id.$invalid ||
-             this.$v.formItem.name.$invalid ||
-             this.$v.formItem.surname.$invalid ||
-             this.$v.formItem.email.$invalid ||
-             this.$v.formItem.phone.$invalid
-
+      return this.$v.$anyError;
     },
   },
 };
@@ -231,7 +220,7 @@ export default {
     margin-top: 35px;
     display: flex;
     justify-content: space-around;
-    align-items: center;
+    align-items: flex-start;
     flex-wrap: wrap;
   }
 
