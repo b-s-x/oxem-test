@@ -12,7 +12,7 @@
     </transition>
 
     <div class="table__container">
-      <paginate :list="getDataSet" :per="5" name="pages">
+      <paginate :list="getDataTable" :per="5" name="pages">
 
         <table-template :dataTable="paginated('pages')" :header="header">
           <template #header="{ column, index }">
@@ -31,7 +31,7 @@
           </template>
 
           <template #tableItem="{ item }">
-            <div class="table__item" @click="selectingUser(item.id)">
+            <div class="table__item" @click="selectUserId(item.id)">
               <div class="item">{{ item.id }}</div>
               <div class="item">{{ item.firstName }}</div>
               <div class="item">{{ item.lastName }}</div>
@@ -86,12 +86,13 @@ export default {
         { field: 'phone', caption:' Phone' },
       ],
 
-      keyMap: {
-        sortKeyId: true,
-        sortKeyFirstName: true,
-        sortKeyLastName: true,
-        sortKeyEmail: true,
-        sortKeyPhone: true,
+      sort: {
+        // Array.prototype.sort() мутирует массив на котором вызван, поэтому
+        // сохраняем отдельно ссылку на отсортированные данные (можно это
+        // сделать внутри store )
+        data: null,
+        field: null,
+        reverse: false,
       },
 
       isVisible: false,
@@ -107,7 +108,7 @@ export default {
     }),
 
     getDataTable() {
-      return this.getDataSet;
+      return this.sort.data || this.getDataSet;
     },
 
     checkASortKey() {
@@ -117,19 +118,16 @@ export default {
 
   methods: {
     sortBy(field, index) {
-      // console.log(field, index);
-      if (field === "id") this.sortByNum("id", "sortKeyId");
-      if (field === "firstName") this.sortByName("firstName", "sortKeyFirstName");
-      if (field === "lastName") this.sortByName("lastName", "sortKeyLastName");
-      if (field === "email") this.sortByName("email", "sortKeyEmailName");
-      if (field === "phone") this.sortByPhone();
+      this.sort.reverse = this.sort.field === field ? !this.sort.reverse : false;
+      this.sort.field = field;
+      this.sort.data = this.sortByField(field);
     },
 
     log(id) {
       console.log(id);
     },
 
-    selectingUser(id) {
+    selectUserId(id) {
       this.getDataSet.filter((elem) => {
         if (elem.id === id) {
           this.pickAUser = elem;
@@ -142,43 +140,19 @@ export default {
       this.isVisible = false;
     },
 
-    sortByPhone() {
-      this.keyMap.sortKeyPhone = !this.keyMap.sortKeyPhone;
-      this.getDataSet.sort((a, b) => {
-        let nameA = a.phone.split("")[1];
-        let nameB = b.phone.split("")[1];
-        if (this.keyMap.sortKeyPhone) {
-          return nameA - nameB;
-        } else {
-          return nameB - nameA;
-        }
-      });
-    },
+    sortByField(field) {
+      const factor = this.sort.reverse ? -1 : 1;
 
-    sortByNum(selector, keySelector) {
-      this.keyMap[keySelector] = !this.keyMap[keySelector];
-      if (this.keyMap[keySelector]) {
-       return this.getDataSet.sort((a, b) => a[selector] - b[selector]);
-      } else {
-        return this.getDataSet.reverse();
-      }
-    },
+      return this.getDataSet.slice().sort((a, b) => {
+        let [lhs, rhs] = [a[field], b[field]];
 
-    sortByName(selector, keySelector) {
-      this.keyMap[keySelector] = !this.keyMap[keySelector];
-      this.getDataSet.sort((a, b) => {
-        let nameA = a[selector].toLowerCase();
-        let nameB = b[selector].toLowerCase();
-
-        if (this.keyMap[keySelector]) {
-          if (nameA < nameB) return 1;
-          if (nameA > nameB) return -1;
-        } else {
-          if (nameA < nameB) return -1;
-          if (nameA > nameB) return 1;
+        if (field === 'phone') {
+          [lhs, rhs] = [a.phone.charAt(1), b.phone.charAt(1)];
+        } else if (['firstName', 'lastName'].includes(field)) {
+          [lhs, rhs] = [lhs.toLowerCase(), rhs.toLowerCase()];
         }
 
-        return 0;
+        return factor * (rhs < lhs ? 1 : (rhs > lhs ? -1 : 0));
       });
     },
   },
