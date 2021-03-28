@@ -14,11 +14,12 @@
     <div class="table__container">
       <paginate :list="getDataSet" :per="5" name="pages">
 
-        <table-template :dataTable="paginated('pages')" :dataTitle="dataTitle">
-          <template #tableTitle="{ title, index }">
-            <div class="table__item" @click="sortBy(title, index)">
+        <table-template :dataTable="paginated('pages')" :header="header">
+          <template #header="{ column, index }">
+            <div class="table__item" @click="sortBy(column.field, index)">
               <div class="item">
-                <div>{{ title }}</div>
+                <div>{{ column.caption }}</div>
+
                 <div class="dropdown__box">
                   <svg class="dropdown__img" :class="checkASortKey">
                     <use
@@ -77,7 +78,13 @@ export default {
 
   data() {
     return {
-      dataTitle: ["id", "firstName", "lastName", "email", "phone"],
+      header: [
+        { field: 'id', caption: 'ID' },
+        { field: 'firstName', caption: 'First Name' },
+        { field: 'lastName', caption: 'Last Name' },
+        { field: 'email', caption: 'Email' },
+        { field: 'phone', caption:' Phone' },
+      ],
 
       keyMap: {
         sortKeyId: true,
@@ -109,13 +116,13 @@ export default {
   },
 
   methods: {
-    sortBy(item, index) {
-      // console.log(item, index);
-      if (item === "id") this.sortByNum("id", "sortKeyId");
-      if (item === "firstName") this.sortByName("firstName", "sortKeyFirstName");
-      if (item === "lastName") this.sortByName("lastName", "sortKeyLastName");
-      if (item === "email") this.sortByName("email", "sortKeyEmailName");
-      if (item === "phone") this.sortByPhone();
+    sortBy(field, index) {
+      // console.log(field, index);
+      if (field === "id") this.sortByNum("id", "sortKeyId");
+      if (field === "firstName") this.sortByName("firstName", "sortKeyFirstName");
+      if (field === "lastName") this.sortByName("lastName", "sortKeyLastName");
+      if (field === "email") this.sortByName("email", "sortKeyEmailName");
+      if (field === "phone") this.sortByPhone();
     },
 
     log(id) {
