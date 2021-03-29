@@ -95,7 +95,7 @@
       <button
         class="btn"
         type="submit"
-        :disabled="disabledRegister"
+        :disabled="disabledButton"
         >Добавить в таблицу</button>
     </form>
   </div>
@@ -107,8 +107,6 @@ import { IMaskDirective } from 'vue-imask';
 import { email, numeric, helpers, required, minLength } from "vuelidate/lib/validators";
 const alpha = helpers.regex("alpha", /^[a-zA-Za-яёА-ЯЁ]*$/);
 
-// Если бы FormItem был бы классом, эта функция пропала бы отсюда, и везде вызывался бы
-// какой нибудь FormItem.empty()
 const newEmptyFormItem = () => {
   return {
     id: "",
@@ -180,17 +178,11 @@ export default {
       this.$v.$touch();
       if (this.$v.$invalid) {
         this.submitStatus = "ERROR";
-        // Это называется early return - если выполнение ветки if'а не
-        // подразумевает продолжение выполнения можно просто сделать return
-        // Уровень вложенности кода при этом падает на 1 (нет ветки else)
         return;
       }
 
       this.submitStatus = "OK";
 
-      // for (let input in this.formItem) {
-      //   this.formItem[input] = "";
-      // }
       this.$v.$reset();
       this.$emit('createTableItem', {
         id: this.formItem.id,
@@ -216,7 +208,8 @@ export default {
         phone: phone.$dirty && phone.$error,
       }
     },
-    disabledRegister() {
+
+    disabledButton() {
       return this.$v.$anyError;
     },
   },
