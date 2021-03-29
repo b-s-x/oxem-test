@@ -11,10 +11,14 @@
       />
     </transition>
 
-    <div class="table__container">
-      <paginate :list="getDataTable" :per="5" name="pages">
+    <list-loader class="loader" v-if="getLoading"/>
+
+    <div v-else class="table__container">
+      <paginate :list="getDataTable" :per="50" name="pages">
         <table-template :dataTable="paginated('pages')" :header="header">
+
           <template #header="{ column, index }">
+
             <div class="table__item" @click="sortBy(column.field, index)">
               <div class="item">
                 <div>{{ column.caption }}</div>
@@ -29,7 +33,9 @@
           </template>
 
           <template #tableItem="{ item }">
+
             <div class="table__item" @click="selectUserId(item.id)">
+
               <div class="item">{{ item.id }}</div>
               <div class="item">{{ item.firstName }}</div>
               <div class="item">{{ item.lastName }}</div>
@@ -65,6 +71,7 @@ import { mapGetters } from "vuex";
 import TableTemplate from "../components/TableTemplate";
 import AddTableItem from "../components/AddTableItem";
 import FormRepresentation from "../components/FormRepresentation";
+import ListLoader from "../components/ListLoader"
 
 export default {
   name: "App",
@@ -72,6 +79,7 @@ export default {
     TableTemplate,
     AddTableItem,
     FormRepresentation,
+    ListLoader,
   },
 
   data() {
@@ -104,6 +112,7 @@ export default {
   computed: {
     ...mapGetters({
       getDataSet: "getDataSet",
+      getLoading: "getLoading"
     }),
 
     getDataTable() {
@@ -251,4 +260,10 @@ export default {
     text-decoration: underline;
   }
 }
+
+.loader {
+  display: flex;
+  margin-top: 150px;
+}
+
 </style>

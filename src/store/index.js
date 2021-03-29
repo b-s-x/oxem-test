@@ -9,7 +9,9 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     dataSet: [],
+    loading: true,
   },
+
   mutations: {
     settingData(state, data) {
       state.dataSet = data
@@ -18,8 +20,13 @@ export default new Vuex.Store({
     addNewTableItem(state, data) {
       state.dataSet.push(data)
       console.log('done');
+    },
+
+    changeLoading(state) {
+      state.loading = false
     }
   },
+
   actions: {
     async fetchData({commit}, selector = BIG_DATA) {
       if(selector === 'small') selector = SMALL_DATA
@@ -28,11 +35,17 @@ export default new Vuex.Store({
       const data = await result.json()
 
       commit('settingData', data)
+      commit("changeLoading")
     }
   },
+
   getters: {
     getDataSet(store) {
       return store.dataSet
-    }
+    },
+
+    getLoading: (state) => {
+      return state.loading
+  },
   }
 })
