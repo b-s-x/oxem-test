@@ -22,20 +22,23 @@ export default new Vuex.Store({
       console.log('done');
     },
 
-    changeLoading(state) {
-      state.loading = false
-    }
+    changeLoading(state, selector) {
+      state.loading = (selector === "false") ? false : true
+    },
   },
 
   actions: {
     async fetchData({commit}, selector = BIG_DATA) {
       if(selector === 'small') selector = SMALL_DATA
-
       const result = await fetch(selector)
-      const data = await result.json()
 
-      commit('settingData', data)
-      commit("changeLoading")
+      if (!result.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      } else {
+        const data = await result.json()
+        commit('settingData', data)
+        commit("changeLoading", "false")
+      }
     }
   },
 

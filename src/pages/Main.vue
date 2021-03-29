@@ -1,5 +1,14 @@
 <template>
   <div class="main">
+    <div class="radio-btn__container">
+      <div class="radio-btn__items">
+        <input type="radio" id="small" @change="changeDataFetch('small')" name="input" value="small" checked>
+        <label for="small">small data</label>
+        <input type="radio" id="big" name="input" value="big" @change="changeDataFetch('big')">
+        <label for="big">big data</label>
+      </div>
+    </div>
+
     <div class="btn__container">
       <button class="btn" @click="isVisible = !isVisible">Добавить</button>
     </div>
@@ -92,10 +101,9 @@ export default {
         { field: "phone", caption: " Phone" },
       ],
 
+      checkDataFetch: true,
+
       sort: {
-        // Array.prototype.sort() мутирует массив на котором вызван, поэтому
-        // сохраняем отдельно ссылку на отсортированные данные (можно это
-        // сделать внутри store )
         data: null,
         field: null,
         reverse: false,
@@ -122,8 +130,7 @@ export default {
 
   methods: {
     sortBy(field, index) {
-      this.sort.reverse =
-        this.sort.field === field ? !this.sort.reverse : false;
+      this.sort.reverse = (this.sort.field === field) ? !this.sort.reverse : false;
       this.sort.field = field;
       this.sort.data = this.sortByField(field);
 
@@ -141,8 +148,10 @@ export default {
     },
 
     selectUserId(id) {
+      console.log(id);
       this.getDataSet.filter((elem) => {
         if (elem.id === id) {
+          console.log(elem.id);
           this.pickAUser = elem;
         }
       });
@@ -168,10 +177,19 @@ export default {
         return factor * (rhs < lhs ? 1 : rhs > lhs ? -1 : 0);
       });
     },
+
+    changeDataFetch(value) {
+      (value === "big") ? this.$store.dispatch("fetchData") : this.$store.dispatch("fetchData", value);
+      this.$store.commit("changeLoading")
+    },
+
+    async fetchData(value) {
+      await this.$store.dispatch("fetchData", value);
+    }
   },
 
   async mounted() {
-    await this.$store.dispatch("fetchData");
+    await this.fetchData("small")
   },
 };
 </script>
@@ -264,6 +282,10 @@ export default {
 .loader {
   display: flex;
   margin-top: 150px;
+}
+
+.radio-btn {
+  // position: relative;
 }
 
 </style>
