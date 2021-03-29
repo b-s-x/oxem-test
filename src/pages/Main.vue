@@ -13,7 +13,6 @@
 
     <div class="table__container">
       <paginate :list="getDataTable" :per="5" name="pages">
-
         <table-template :dataTable="paginated('pages')" :header="header">
           <template #header="{ column, index }">
             <div class="table__item" @click="sortBy(column.field, index)">
@@ -21,9 +20,8 @@
                 <div>{{ column.caption }}</div>
 
                 <div class="dropdown__box">
-                  <svg class="dropdown__img" :class="checkASortKey">
-                    <use
-                      xlink:href="../../public/down-arrow.svg#dropdown"/>
+                  <svg class="dropdown__img" :class="checkASortKey(index)">
+                    <use xlink:href="../../public/down-arrow.svg#dropdown" />
                   </svg>
                 </div>
               </div>
@@ -42,10 +40,10 @@
         </table-template>
       </paginate>
 
-
       <paginate-links
         for="pages"
         :show-step-links="true"
+        :limit="10"
         :step-links="{
           next: 'Следующая страница',
           prev: 'Предыдущая страница',
@@ -79,11 +77,11 @@ export default {
   data() {
     return {
       header: [
-        { field: 'id', caption: 'ID' },
-        { field: 'firstName', caption: 'First Name' },
-        { field: 'lastName', caption: 'Last Name' },
-        { field: 'email', caption: 'Email' },
-        { field: 'phone', caption:' Phone' },
+        { field: "id", caption: "ID" },
+        { field: "firstName", caption: "First Name" },
+        { field: "lastName", caption: "Last Name" },
+        { field: "email", caption: "Email" },
+        { field: "phone", caption: " Phone" },
       ],
 
       sort: {
@@ -97,6 +95,7 @@ export default {
 
       isVisible: false,
       pickAUser: null,
+      activeDropdown: null,
 
       paginate: ["pages"],
     };
@@ -110,21 +109,26 @@ export default {
     getDataTable() {
       return this.sort.data || this.getDataSet;
     },
-
-    checkASortKey() {
-      return { dropdown__img__active: false }
-    }
   },
 
   methods: {
     sortBy(field, index) {
-      this.sort.reverse = this.sort.field === field ? !this.sort.reverse : false;
+      this.sort.reverse =
+        this.sort.field === field ? !this.sort.reverse : false;
       this.sort.field = field;
       this.sort.data = this.sortByField(field);
+
+      this.setActiveDropdown(index)
     },
 
-    log(id) {
-      console.log(id);
+    checkASortKey(index) {
+      return {
+        dropdown__img__active: index === this.activeDropdown && !this.sort.reverse,
+      };
+    },
+
+    setActiveDropdown(index) {
+      this.activeDropdown = index;
     },
 
     selectUserId(id) {
@@ -146,19 +150,19 @@ export default {
       return this.getDataSet.slice().sort((a, b) => {
         let [lhs, rhs] = [a[field], b[field]];
 
-        if (field === 'phone') {
+        if (field === "phone") {
           [lhs, rhs] = [a.phone.charAt(1), b.phone.charAt(1)];
-        } else if (['firstName', 'lastName'].includes(field)) {
+        } else if (["firstName", "lastName"].includes(field)) {
           [lhs, rhs] = [lhs.toLowerCase(), rhs.toLowerCase()];
         }
 
-        return factor * (rhs < lhs ? 1 : (rhs > lhs ? -1 : 0));
+        return factor * (rhs < lhs ? 1 : rhs > lhs ? -1 : 0);
       });
     },
   },
 
   async mounted() {
-    await this.$store.dispatch("fetchData", "small");
+    await this.$store.dispatch("fetchData");
   },
 };
 </script>
@@ -214,9 +218,11 @@ export default {
     fill: black;
     width: 100%;
     height: 100%;
+    transition: 0.5s ease;
 
     &__active {
-      transform: rotate(180deg)
+      transform: rotate(180deg);
+      transition: 0.5s ease;
     }
   }
 }
@@ -230,7 +236,6 @@ export default {
   list-style-type: none;
   justify-content: space-around;
   font-size: 24px;
-
 }
 
 .paginate-links.pages {
@@ -246,6 +251,4 @@ export default {
     text-decoration: underline;
   }
 }
-
-
 </style>
