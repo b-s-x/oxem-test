@@ -25,9 +25,6 @@
 export default {
   props: {
     dataTable: { type: Array, default: () => [] },
-
-    // Если бы это был Typescript, можно было бы явно указать что header должен
-    // быть массивом из объектов с полями field, caption
     header: { type: Array, default: () => [] },
   },
 }
