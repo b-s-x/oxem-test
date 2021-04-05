@@ -2,9 +2,22 @@
   <div class="main">
     <div class="radio-btn__container">
       <div class="radio-btn__items">
-        <input type="radio" id="small" @change="changeDataFetch('small')" name="input" value="small" checked>
+        <input
+          type="radio"
+          id="small"
+          @change="changeDataFetch('SMALL_DATA')"
+          name="input"
+          value="small"
+          checked
+        />
         <label for="small">small data</label>
-        <input type="radio" id="big" name="input" value="big" @change="changeDataFetch('big')">
+        <input
+          type="radio"
+          id="big"
+          name="input"
+          value="big"
+          @change="changeDataFetch('BIG_DATA')"
+        />
         <label for="big">big data</label>
       </div>
     </div>
@@ -20,14 +33,12 @@
       />
     </transition>
 
-    <list-loader class="loader" v-if="getLoading"/>
+    <list-loader class="loader" v-if="getLoading" />
 
     <div v-else class="table__container">
       <paginate :list="getDataTable" :per="50" name="pages">
         <table-template :dataTable="paginated('pages')" :header="header">
-
           <template #header="{ column, index }">
-
             <div class="table__item" @click="sortBy(column.field, index)">
               <div class="item">
                 <div>{{ column.caption }}</div>
@@ -42,9 +53,7 @@
           </template>
 
           <template #tableItem="{ item }">
-
             <div class="table__item" @click="selectUserId(item.id)">
-
               <div class="item">{{ item.id }}</div>
               <div class="item">{{ item.firstName }}</div>
               <div class="item">{{ item.lastName }}</div>
@@ -80,7 +89,7 @@ import { mapGetters } from "vuex";
 import TableTemplate from "../components/TableTemplate";
 import AddTableItem from "../components/AddTableItem";
 import FormRepresentation from "../components/FormRepresentation";
-import ListLoader from "../components/ListLoader"
+import ListLoader from "../components/ListLoader";
 
 export default {
   name: "App",
@@ -113,6 +122,8 @@ export default {
       pickAUser: null,
       activeDropdown: null,
 
+      activeDataFetch: "SMALL_DATA",
+
       paginate: ["pages"],
     };
   },
@@ -120,7 +131,7 @@ export default {
   computed: {
     ...mapGetters({
       getDataSet: "getDataSet",
-      getLoading: "getLoading"
+      getLoading: "getLoading",
     }),
 
     getDataTable() {
@@ -130,16 +141,18 @@ export default {
 
   methods: {
     sortBy(field, index) {
-      this.sort.reverse = (this.sort.field === field) ? !this.sort.reverse : false;
+      this.sort.reverse =
+        this.sort.field === field ? !this.sort.reverse : false;
       this.sort.field = field;
       this.sort.data = this.sortByField(field);
 
-      this.setActiveDropdown(index)
+      this.setActiveDropdown(index);
     },
 
     checkASortKey(index) {
       return {
-        dropdown__img__active: index === this.activeDropdown && !this.sort.reverse,
+        dropdown__img__active:
+          index === this.activeDropdown && !this.sort.reverse,
       };
     },
 
@@ -148,10 +161,8 @@ export default {
     },
 
     selectUserId(id) {
-      console.log(id);
       this.getDataSet.filter((elem) => {
         if (elem.id === id) {
-          console.log(elem.id);
           this.pickAUser = elem;
         }
       });
@@ -179,17 +190,19 @@ export default {
     },
 
     changeDataFetch(value) {
-      (value === "big") ? this.$store.dispatch("fetchData") : this.$store.dispatch("fetchData", value);
+      this.activeDataFetch = value
+
+      this.fetchData(this.activeDataFetch)
       this.$store.commit("changeLoading")
     },
 
     async fetchData(value) {
       await this.$store.dispatch("fetchData", value);
-    }
+    },
   },
 
   async mounted() {
-    await this.fetchData("small")
+    await this.fetchData(this.activeDataFetch );
   },
 };
 </script>
@@ -283,9 +296,4 @@ export default {
   display: flex;
   margin-top: 150px;
 }
-
-.radio-btn {
-  // position: relative;
-}
-
 </style>

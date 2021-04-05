@@ -6,14 +6,24 @@ const BIG_DATA = "http://www.filltext.com/?rows=1000&id={number|1000}&firstName=
 
 Vue.use(Vuex)
 
+function compareKey(keySet, selector) {
+  for (let key of Object.keys(keySet)) {
+    if (key === selector) return key;
+  }
+}
+
 export default new Vuex.Store({
   state: {
     dataSet: [],
     loading: true,
+    keySet: {
+      SMALL_DATA,
+      BIG_DATA
+    }
   },
 
   mutations: {
-    settingData(state, data) {
+    setData(state, data) {
       state.dataSet = data
     },
 
@@ -22,22 +32,23 @@ export default new Vuex.Store({
       console.log('done');
     },
 
-    changeLoading(state, selector) {
-      state.loading = (selector === "false") ? false : true
+    changeLoading(state) {
+      state.loading = !state.loading
     },
   },
 
   actions: {
-    async fetchData({commit}, selector = BIG_DATA) {
-      if(selector === 'small') selector = SMALL_DATA
-      const result = await fetch(selector)
+    async fetchData({commit, state}, selector) {
+
+      const activeKey = compareKey(state.keySet, selector)
+      const result = await fetch(state.keySet[activeKey])
 
       if (!result.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       } else {
         const data = await result.json()
-        commit('settingData', data)
-        commit("changeLoading", "false")
+        commit('setData', data)
+        commit("changeLoading")
       }
     }
   },
@@ -49,6 +60,6 @@ export default new Vuex.Store({
 
     getLoading: (state) => {
       return state.loading
-  },
+    },
   }
 })
